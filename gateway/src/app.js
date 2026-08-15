@@ -1,18 +1,10 @@
 const express = require('express');
-const {createProxyMiddleware} = require('http-proxy-middleware');
+const {userServiceProxy} = require('./modules/routing/routes');
 const app = express();
 app.use(express.json());
 
-app.use(
-    '/api',
-    createProxyMiddleware({
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-        pathRewrite: {
-            '^/api/users': '/users',
-        },
-    })
-);
+app.use('/api/users', userServiceProxy);
+
 
 app.get('/health', (req, res) => {
   res.status(200).json({
