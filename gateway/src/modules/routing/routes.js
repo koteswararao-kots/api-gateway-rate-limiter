@@ -1,7 +1,8 @@
 const {createProxyMiddleware} = require('http-proxy-middleware');
+const {USER_SERVICE_URL, PRODUCT_SERVICE_URL} = process.env;
 
 const userServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:3001',
+  target: USER_SERVICE_URL,
   changeOrigin: true,
  pathRewrite: {
         '^/': '/users',
@@ -9,7 +10,7 @@ const userServiceProxy = createProxyMiddleware({
 });
 
 const productServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:3002',
+  target: PRODUCT_SERVICE_URL,
   changeOrigin: true,
   pathRewrite: {
         '^/': '/products',

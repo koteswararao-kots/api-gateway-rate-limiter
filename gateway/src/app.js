@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const {userServiceProxy, productServiceProxy} = require('./modules/routing/routes');
 const app = express();
