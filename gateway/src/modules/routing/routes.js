@@ -17,8 +17,16 @@ const productServiceProxy = createProxyMiddleware({
     },
 });
 
+const orderServiceProxy = createProxyMiddleware({ 
+  target: 'http://localhost:3003', // Order service URL
+  changeOrigin: true,
+  pathRewrite: {
+        '^/': '/orders',
+    },
+});
 
 module.exports = {
   userServiceProxy,
-  productServiceProxy
+  productServiceProxy,
+  orderServiceProxy
 }
