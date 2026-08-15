@@ -25,8 +25,17 @@ const orderServiceProxy = createProxyMiddleware({
     },
 });
 
+const notificationServiceProxy = createProxyMiddleware({
+  target: 'http://localhost:3004', // Notification service URL
+  changeOrigin: true,
+  pathRewrite: {
+        '^/': '/notifications',
+    },
+});
+
 module.exports = {
   userServiceProxy,
   productServiceProxy,
-  orderServiceProxy
+  orderServiceProxy,
+  notificationServiceProxy
 }
