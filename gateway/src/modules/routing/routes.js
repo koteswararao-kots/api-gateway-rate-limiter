@@ -1,5 +1,5 @@
 const {createProxyMiddleware} = require('http-proxy-middleware');
-const {USER_SERVICE_URL, PRODUCT_SERVICE_URL} = process.env;
+const {USER_SERVICE_URL, PRODUCT_SERVICE_URL, ORDER_SERVICE_URL, NOTIFICATION_SERVICE_URL} = process.env;
 
 const userServiceProxy = createProxyMiddleware({
   target: USER_SERVICE_URL,
@@ -18,7 +18,7 @@ const productServiceProxy = createProxyMiddleware({
 });
 
 const orderServiceProxy = createProxyMiddleware({ 
-  target: 'http://localhost:3003', // Order service URL
+  target: ORDER_SERVICE_URL, // Order service URL
   changeOrigin: true,
   pathRewrite: {
         '^/': '/orders',
@@ -26,7 +26,7 @@ const orderServiceProxy = createProxyMiddleware({
 });
 
 const notificationServiceProxy = createProxyMiddleware({
-  target: 'http://localhost:3004', // Notification service URL
+  target: NOTIFICATION_SERVICE_URL, // Notification service URL
   changeOrigin: true,
   pathRewrite: {
         '^/': '/notifications',
