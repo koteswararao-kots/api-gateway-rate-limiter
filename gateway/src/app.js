@@ -6,12 +6,14 @@ const {userServiceProxy,
   notificationServiceProxy} = require('./modules/routing/routes');
 
 const {authenticate} = require('./modules/authentication/auth.middleware');
+const {authorize} = require('./modules/authentication/authorization.middleware');
+const {authenticateApiKey} = require('./modules/authentication/apikey.middleware');
 const app = express();
 app.use(express.json());
 
 app.use('/api/users', authenticate, userServiceProxy);
-app.use('/api/products', productServiceProxy);
-app.use('/api/orders', orderServiceProxy);
+app.use('/api/products', authenticateApiKey, productServiceProxy);
+app.use('/api/orders',authenticate, authorize('admin'), orderServiceProxy);
 app.use('/api/notifications', notificationServiceProxy);
 
 app.get('/health', (req, res) => {

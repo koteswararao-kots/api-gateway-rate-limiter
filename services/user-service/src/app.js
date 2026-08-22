@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const {JWT_SECRET} = process.env;
-console.log('JWT_SECRET:', JWT_SECRET); // Log the JWT_SECRET to verify it's being read correctly
 const app = express();
 app.use(express.json());
 
@@ -14,13 +13,13 @@ app.get('/users', (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-    const { userId } = req.body;
+    const { userId, role } = req.body;
 
-    if (!userId) {
-        return res.status(400).json({ error: 'User ID is required.' });
+    if (!userId || !role) {
+        return res.status(400).json({ error: 'User ID and role are required.' });
     }
 
-    const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId, role }, JWT_SECRET, { expiresIn: '1h' });
     res.status(200).json({ token });
 });
 
