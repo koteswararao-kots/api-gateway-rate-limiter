@@ -12,7 +12,7 @@ const {rateLimiter} = require('./middleware/rateLimiter')
 const app = express();
 app.use(express.json());
 
-app.use('/api/users', authenticate, rateLimiter,  userServiceProxy);
+app.use('/api/users', authenticate, rateLimiter('user', 5), rateLimiter('ip', 10), rateLimiter('path',20),  userServiceProxy);
 app.use('/api/products', authenticateApiKey, productServiceProxy);
 app.use('/api/orders',authenticate, authorize('admin'), orderServiceProxy);
 app.use('/api/notifications', notificationServiceProxy);
