@@ -9,12 +9,4 @@ redisClient.on('error', (error) => {
   console.error('Redis Client Error:', error);
 });
 
-redisClient.on('connect', () => {
-  console.log('Redis socket connected');
-});
-
-redisClient.on('ready', () => {
-  console.log('Redis client ready');
-});
-
 module.exports = redisClient;

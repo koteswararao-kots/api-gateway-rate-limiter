@@ -14,7 +14,6 @@ const requestLogger = (req, res, next) => {
     const userId = req.user?.userId || 'anonymous';
 
    await redisClient.incr('analytics:total_requests');
-    console.log(db);
     const log = {
       method,
       endpoint,
