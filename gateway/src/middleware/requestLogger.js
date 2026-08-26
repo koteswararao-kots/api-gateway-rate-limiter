@@ -1,4 +1,4 @@
-const requesLogger = (req, res, next) => {
+const requestLogger = (req, res, next) => {
   const startTime = Date.now()
 
   res.on('finish', () => {
@@ -21,5 +21,5 @@ const requesLogger = (req, res, next) => {
   next();
 }
 module.exports = {
-  requesLogger
+  requestLogger
 }
