@@ -11,6 +11,7 @@ const {authenticateApiKey} = require('./modules/authentication/apikey.middleware
 const {rateLimiter} = require('./middleware/rateLimiter')
 const {requestLogger} = require('./middleware/requestLogger')
 const {cache} = require('./middleware/cache')
+const analyticsRoutes = require('./modules/analytics/routes');
 
 
 const app = express();
@@ -22,6 +23,7 @@ app.use('/api/users', authenticate, cache, rateLimiter('user', 5), rateLimiter('
 app.use('/api/products', authenticateApiKey, productServiceProxy);
 app.use('/api/orders',authenticate, authorize('admin'), orderServiceProxy);
 app.use('/api/notifications', notificationServiceProxy);
+app.use('/analytics', analyticsRoutes)
 
 app.get('/health', (req, res) => {
   res.status(200).json({

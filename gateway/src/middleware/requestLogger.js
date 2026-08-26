@@ -7,6 +7,7 @@ const requestLogger = (req, res, next) => {
   res.on('finish', async () => {
 
     const responseTime = Date.now() - startTime;
+    await redisClient.incrBy('analytics:total_response_time', responseTime);
     const method = req.method;
     const endpoint = req.originalUrl;
     const ip = req.ip;
@@ -14,6 +15,18 @@ const requestLogger = (req, res, next) => {
     const userId = req.user?.userId || 'anonymous';
 
    await redisClient.incr('analytics:total_requests');
+
+   if (statusCode >= 200 && statusCode < 400) {
+    await redisClient.incr('analytics:success_requests')
+   } else {
+    await redisClient.incr('analytics:error_requests')
+   }
+
+   await redisClient.zIncrBy('analytics:api_usage',1,endpoint);
+   await redisClient.sAdd('analytics:active_users', userId);
+   const hour = new Date().toISOString().slice(0, 13);
+   await redisClient.incr(`analytics:traffic:${hour}`);   
+
     const log = {
       method,
       endpoint,
