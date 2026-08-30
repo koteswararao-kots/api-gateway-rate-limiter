@@ -1,6 +1,10 @@
 const redisClient = require('../config/redis');
+const {httpRequestsTotal, httpRequestDuration} = require('../metrics/metrics')
 
 const requestLogger = (req, res, next) => {
+  if (req.path === '/metrics') {
+    return next();
+  }
 
   const startTime = Date.now();
 
@@ -25,7 +29,22 @@ const requestLogger = (req, res, next) => {
    await redisClient.zIncrBy('analytics:api_usage',1,endpoint);
    await redisClient.sAdd('analytics:active_users', userId);
    const hour = new Date().toISOString().slice(0, 13);
-   await redisClient.incr(`analytics:traffic:${hour}`);   
+   await redisClient.incr(`analytics:traffic:${hour}`);  
+
+   httpRequestsTotal.inc({
+    method,
+    route: req.path,
+    status_code: statusCode.toString()
+   }); 
+
+   httpRequestDuration.observe(
+    responseTime/1000,
+    {
+      method,
+      route: req.path,
+      status_code: statusCode.toString()
+    }
+   );
 
     const log = {
       method,
