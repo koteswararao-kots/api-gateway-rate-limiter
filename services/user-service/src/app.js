@@ -5,9 +5,14 @@ const {JWT_SECRET} = process.env;
 const app = express();
 app.use(express.json());
 
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 app.get('/users', (req, res) => {
     res.status(200).json({
         service: 'user-service',
+        // res: process.env.PORT || 3001,
         message: 'Users retrieved successfully'
     });
 });
