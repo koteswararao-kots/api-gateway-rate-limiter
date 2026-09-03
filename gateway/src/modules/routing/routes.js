@@ -8,7 +8,7 @@ const userServices = [USER_SERVICE_URL_1, USER_SERVICE_URL_2, USER_SERVICE_URL_3
 let healthyServices = [...userServices];
 
 const checkServiceHealth = async () => {
-  console.log("checking health service")
+  // console.log("checking health service")
   let healthy = []
   for (const service of healthyServices) {
     try {

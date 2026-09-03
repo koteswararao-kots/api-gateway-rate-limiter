@@ -10,11 +10,18 @@ services:
       USER_SERVICE_URL_1: http://user-service-1:3001
       USER_SERVICE_URL_2: http://user-service-2:3001
       USER_SERVICE_URL_3: http://user-service-3:3001
+
+      PRODUCT_SERVICE_URL: http://product-service:3004
+      ORDER_SERVICE_URL: http://order-service:3005
+      NOTIFICATION_SERVICE_URL: http://notification-service:3006
     depends_on:
       - redis
       - user-service-1
       - user-service-2
       - user-service-3
+      - product-service
+      - order-service
+      - notification-service
 
   redis:
     image: redis:7-alpine
@@ -39,6 +46,24 @@ services:
     container_name: user-service-3
     ports:
       - "3003:3001"
+
+  order-service:
+    build: ./services/order-service
+    container_name: order-service
+    ports:
+      - "3005:3005"
+
+  notification-service:
+    build: ./services/notification-service
+    container_name: notification-service
+    ports:
+      - "3006:3006"
+
+  product-service:
+    build: ./services/product-service
+    container_name: product-service
+    ports:
+      - "3004:3004"
 
   prometheus:
     image: prom/prometheus

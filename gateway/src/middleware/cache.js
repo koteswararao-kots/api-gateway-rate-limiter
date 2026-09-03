@@ -15,7 +15,7 @@ const cache = async (req, res, next) => {
     const originalJson = res.json;
 
     res.json = function (body) {
-        console.log('res.json called');
+        // console.log('res.json called');
         redisClient.set(
             key,
             JSON.stringify(body),

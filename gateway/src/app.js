@@ -26,7 +26,7 @@ app.get('/metrics', async(req, res) => {
 
 })
 
-app.use('/api/users', authenticate, cache, rateLimiter('user', 5), rateLimiter('ip', 10), rateLimiter('path',20),  userServiceProxy);
+app.use('/api/users', authenticate, rateLimiter('user', 5), rateLimiter('ip', 10), rateLimiter('path',20), cache, userServiceProxy);
 app.use('/api/products', authenticateApiKey, productServiceProxy);
 app.use('/api/orders',authenticate, authorize('admin'), orderServiceProxy);
 app.use('/api/notifications', notificationServiceProxy);
