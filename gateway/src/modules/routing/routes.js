@@ -35,6 +35,8 @@ const getNextUserService = () => {
   currentService++
   return service;
 }
+
+
 const userServiceProxy = createProxyMiddleware({
   target: USER_SERVICE_URL_1,
   changeOrigin: true,
