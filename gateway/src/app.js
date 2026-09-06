@@ -6,7 +6,8 @@ const {
   userServiceProxy,
   productServiceProxy,
   orderServiceProxy,
-  notificationServiceProxy
+  notificationServiceProxy,
+  circuitBreaker
 } = require('./modules/routing/routes');
 
 const { authenticate } = require('./modules/authentication/auth.middleware');
@@ -28,9 +29,7 @@ app.use(express.json());
 app.use(requestLogger);
 
 
-// ============================================
 // Metrics
-// ============================================
 
 app.get('/metrics', async (req, res) => {
   res.set('Content-Type', register.contentType);
@@ -38,28 +37,15 @@ app.get('/metrics', async (req, res) => {
 });
 
 
-// ============================================
 // API Routes
-// ============================================
 
-app.use(
-  '/api/users',
-  authenticate,
-  rateLimiter('user', 5),
-  rateLimiter('ip', 10),
-  rateLimiter('path', 20),
-  cache,
+app.use('/api/users',authenticate, rateLimiter('user', 5), rateLimiter('ip', 10), rateLimiter('path', 20), cache,
   userServiceProxy
 );
 
-app.use(
-  '/api/products',
-  authenticateApiKey,
-  productServiceProxy
-);
+app.use('/api/products',authenticateApiKey,  circuitBreaker('product-service'), productServiceProxy);
 
-app.use(
-  '/api/orders',
+app.use('/api/orders',
   authenticate,
   authorize('admin'),
   orderServiceProxy
@@ -70,17 +56,12 @@ app.use(
   notificationServiceProxy
 );
 
-
-// ============================================
 // Analytics
-// ============================================
 
 app.use('/analytics', analyticsRoutes);
 
 
-// ============================================
 // Gateway Health
-// ============================================
 
 app.get('/health', (req, res) => {
   res.status(200).json({

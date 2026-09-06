@@ -118,15 +118,127 @@ const getNextUserService = () => {
   return service;
 };
 
-
-// ============================================
 // Proxies
-// ============================================
+const proxyTimeoutOptions = {
+  timeout: 5000,
+  proxyTimeout: 5000,
+};
+
+
+// Circuit Breaker
+
+const circuitBreakerOptions = {
+  failureThreshold: 3,
+  resetTimeout: 10000,
+};
+
+const circuitStates = {
+  'product-service': {
+    state: 'CLOSED',
+    failures: 0,
+    openedAt: null,
+    halfOpenInProgress: false,
+  },
+};
+
+const canRequest = (serviceName) => {
+  const circuit = circuitStates[serviceName];
+
+  if (!circuit) {
+    return true;
+  }
+
+  if (circuit.state === 'CLOSED') {
+    return true;
+  }
+
+  if (circuit.state === 'OPEN') {
+    const elapsed = Date.now() - circuit.openedAt;
+
+    if (elapsed >= circuitBreakerOptions.resetTimeout) {
+      circuit.state = 'HALF_OPEN';
+      circuit.halfOpenInProgress = true;
+
+      console.log(`Circuit HALF_OPEN: ${serviceName}`);
+
+      return true;
+    }
+
+    return false;
+  }
+
+  // HALF_OPEN
+  if (circuit.halfOpenInProgress) {
+    return false;
+  }
+
+  circuit.halfOpenInProgress = true;
+
+  return true;
+};
+
+
+const recordSuccess = (serviceName) => {
+  const circuit = circuitStates[serviceName];
+
+  if (!circuit) {
+    return;
+  }
+
+  circuit.state = 'CLOSED';
+  circuit.failures = 0;
+  circuit.openedAt = null;
+  circuit.halfOpenInProgress = false;
+
+  console.log(`Circuit CLOSED: ${serviceName}`);
+};
+
+
+const recordFailure = (serviceName) => {
+  const circuit = circuitStates[serviceName];
+
+  if (!circuit) {
+    return;
+  }
+
+  circuit.failures++;
+  circuit.halfOpenInProgress = false;
+
+  console.log(
+    `Circuit failure: ${serviceName} (${circuit.failures}/${circuitBreakerOptions.failureThreshold})`
+  );
+
+  if (circuit.failures >= circuitBreakerOptions.failureThreshold) {
+    circuit.state = 'OPEN';
+    circuit.openedAt = Date.now();
+
+    console.log(`Circuit OPEN: ${serviceName}`);
+  }
+};
+
+
+const circuitBreaker = (serviceName) => {
+  return (req, res, next) => {
+    if (canRequest(serviceName)) {
+      return next();
+    }
+
+    console.log(`Circuit OPEN - request blocked: ${serviceName}`);
+
+    return res.status(503).json({
+      error: 'Service temporarily unavailable',
+      service: serviceName,
+    });
+  };
+};
+
+
 
 const userServiceProxy = createProxyMiddleware({
   target: USER_SERVICE_URL_1,
   changeOrigin: true,
   selfHandleResponse: true,
+  ...proxyTimeoutOptions,
 
   router: () => {
     const service = getNextUserService();
@@ -185,7 +297,7 @@ const userServiceProxy = createProxyMiddleware({
 const productServiceProxy = createProxyMiddleware({
   target: PRODUCT_SERVICE_URL,
   changeOrigin: true,
-
+  ...proxyTimeoutOptions,
   router: (req) => {
     const route = findRoute(
       req.originalUrl.split('?')[0],
@@ -203,13 +315,31 @@ const productServiceProxy = createProxyMiddleware({
 
     return route?.rewrite_path || path;
   },
+
+   on: {
+    proxyRes: (proxyRes) => {
+      if (proxyRes.statusCode >= 500) {
+        recordFailure('product-service');
+      } else {
+        recordSuccess('product-service');
+      }
+    },
+
+    error: (error) => {
+      console.log(
+        `Product service proxy error: ${error.code || error.message}`
+      );
+
+      recordFailure('product-service');
+    },
+  },
 });
 
 
 const orderServiceProxy = createProxyMiddleware({
   target: ORDER_SERVICE_URL,
   changeOrigin: true,
-
+  ...proxyTimeoutOptions,
   router: (req) => {
     const route = findRoute(
       req.originalUrl.split('?')[0],
@@ -233,7 +363,7 @@ const orderServiceProxy = createProxyMiddleware({
 const notificationServiceProxy = createProxyMiddleware({
   target: NOTIFICATION_SERVICE_URL,
   changeOrigin: true,
-
+  ...proxyTimeoutOptions,
   router: (req) => {
     const route = findRoute(
       req.originalUrl.split('?')[0],
@@ -259,5 +389,6 @@ module.exports = {
   productServiceProxy,
   orderServiceProxy,
   notificationServiceProxy,
-  findRoute
+  findRoute,
+  circuitBreaker
 };
