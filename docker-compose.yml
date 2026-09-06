@@ -29,6 +29,18 @@ services:
     ports:
       - "6379:6379"
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: api-gateway-postgres
+    environment:
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: gateway_password
+      POSTGRES_DB: api_gateway
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
   user-service-1:
     build: ./services/user-service
     container_name: user-service-1
@@ -90,3 +102,4 @@ services:
 volumes:
   prometheus-data:
   grafana-data:
+  postgres-data:
