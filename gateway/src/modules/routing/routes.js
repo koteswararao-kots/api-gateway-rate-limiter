@@ -2,6 +2,9 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const redisClient = require('../../config/redis');
 const postgres = require('../../config/postgres');
 
+const CACHE_TTL_SECONDS =
+  Number(process.env.CACHE_TTL_SECONDS) || 30;
+
 const {
   USER_SERVICE_URL_1,
   USER_SERVICE_URL_2,
@@ -275,7 +278,7 @@ const userServiceProxy = createProxyMiddleware({
         await redisClient.set(
           key,
           body,
-          { EX: 30 }
+          { EX: CACHE_TTL_SECONDS }
         );
 
         console.log('Response cached');

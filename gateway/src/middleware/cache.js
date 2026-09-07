@@ -28,4 +28,20 @@ const cache = async (req, res, next) => {
     next();
 };
 
-module.exports = { cache };
+const invalidateCache = async (path) => {
+  const keys = [];
+
+  for await (const key of redisClient.scanIterator({
+    MATCH: `cache:${path}*`,
+    COUNT: 100,
+  })) {
+    keys.push(key);
+  }
+
+  if (keys.length > 0) {
+    await redisClient.del(keys);
+    console.log(`Cache invalidated: ${keys.length} keys`);
+  }
+};
+
+module.exports = { cache, invalidateCache };
