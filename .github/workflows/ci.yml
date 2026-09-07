@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install gateway dependencies
+        working-directory: gateway
+        run: npm ci
+
+      - name: Install user-service dependencies
+        working-directory: services/user-service
+        run: npm ci
+
+      - name: Install product-service dependencies
+        working-directory: services/product-service
+        run: npm ci
+
+      - name: Install order-service dependencies
+        working-directory: services/order-service
+        run: npm ci
+
+      - name: Install notification-service dependencies
+        working-directory: services/notification-service
+        run: npm ci
+
+      - name: Build Docker images
+        run: docker compose build
