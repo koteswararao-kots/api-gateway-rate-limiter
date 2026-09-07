@@ -1,5 +1,6 @@
 const redisClient = require('../config/redis');
 const {httpRequestsTotal, httpRequestDuration} = require('../metrics/metrics')
+const { getDB } = require('../config/mongodb');
 
 const requestLogger = (req, res, next) => {
   if (req.path === '/metrics') {
@@ -56,6 +57,13 @@ const requestLogger = (req, res, next) => {
     };
 
     console.log(log);
+
+    try {
+      await getDB().collection('request_logs').insertOne({timestamp: new Date(),...log,});
+    } catch (error) {
+      console.error('Failed to save request log:', error);
+    }
+    
   });
 
   next();

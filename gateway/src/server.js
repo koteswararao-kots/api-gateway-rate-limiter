@@ -1,6 +1,9 @@
 const app = require('./app');
 const redisClient = require('./config/redis');
+const { connectMongoDB } = require('./config/mongodb');
+
 const PORT =  3000;
+connectMongoDB();
 
 redisClient.connect() 
 .then(() => {

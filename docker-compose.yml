@@ -14,6 +14,7 @@ services:
       PRODUCT_SERVICE_URL: http://product-service:3004
       ORDER_SERVICE_URL: http://order-service:3005
       NOTIFICATION_SERVICE_URL: http://notification-service:3006
+      MONGODB_URL: mongodb://mongodb:27017
     depends_on:
       - redis
       - user-service-1
@@ -22,6 +23,7 @@ services:
       - product-service
       - order-service
       - notification-service
+      - mongodb
 
   redis:
     image: redis:7-alpine
@@ -119,8 +121,17 @@ services:
     depends_on:
       - redis
 
+  mongodb:
+    image: mongo:7
+    container_name: api-gateway-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+
 
 volumes:
   prometheus-data:
   grafana-data:
   postgres-data:
+  mongodb-data:
