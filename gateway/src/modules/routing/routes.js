@@ -236,6 +236,53 @@ const circuitBreaker = (serviceName) => {
 };
 
 
+const userLoginProxy = createProxyMiddleware({
+  target: USER_SERVICE_URL_1,
+  changeOrigin: true,
+  ...proxyTimeoutOptions,
+
+  router: () => {
+    const service = getNextUserService();
+
+    console.log('Login routing to', service);
+
+    return service;
+  },
+
+  pathRewrite: (path, req) => {
+    const route = findRoute(
+      req.originalUrl.split('?')[0],
+      req.method
+    );
+
+    return route?.rewrite_path || path;
+  },
+
+  on: {
+    proxyReq: (proxyReq, req) => {
+      console.log(
+        'Login proxy request:',
+        req.method,
+        req.originalUrl
+      );
+    },
+
+    proxyRes: (proxyRes) => {
+      console.log(
+        'Login proxy response:',
+        proxyRes.statusCode
+      );
+    },
+
+    error: (error) => {
+      console.log(
+        'Login proxy error:',
+        error.code || error.message
+      );
+    }
+  }
+});
+
 
 const userServiceProxy = createProxyMiddleware({
   target: USER_SERVICE_URL_1,
@@ -273,15 +320,17 @@ const userServiceProxy = createProxyMiddleware({
 
         console.log('User Service response:', body);
 
-        const key = `cache:${req.originalUrl}`;
+        if (req.method === 'GET') {
+          const key = `cache:${req.originalUrl}`;
 
-        await redisClient.set(
-          key,
-          body,
-          { EX: CACHE_TTL_SECONDS }
-        );
+          await redisClient.set(
+            key,
+            body,
+            { EX: CACHE_TTL_SECONDS }
+          );
 
-        console.log('Response cached');
+          console.log('Response cached');
+        }
 
         res.statusCode = proxyRes.statusCode;
 
@@ -292,6 +341,13 @@ const userServiceProxy = createProxyMiddleware({
 
         res.end(body);
       });
+    },
+
+    error: (error) => {
+      console.log(
+        'User proxy error:',
+        error.code || error.message
+      );
     }
   }
 });
@@ -389,6 +445,7 @@ const notificationServiceProxy = createProxyMiddleware({
 
 module.exports = {
   userServiceProxy,
+  userLoginProxy,
   productServiceProxy,
   orderServiceProxy,
   notificationServiceProxy,

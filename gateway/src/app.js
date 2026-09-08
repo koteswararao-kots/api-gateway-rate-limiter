@@ -4,6 +4,7 @@ const express = require('express');
 
 const {
   userServiceProxy,
+  userLoginProxy,
   productServiceProxy,
   orderServiceProxy,
   notificationServiceProxy,
@@ -28,6 +29,8 @@ const app = express();
 
 app.use(helmet());
 app.use(cors());
+app.post('/api/users/login', userLoginProxy);
+
 app.use(express.json({limit: '1mb'}));
 
 app.use(requestLogger);
@@ -42,6 +45,7 @@ app.get('/metrics', async (req, res) => {
 
 
 // API Routes
+
 
 app.use('/api/users',authenticate, rateLimiter('user', 5), rateLimiter('ip', 10), rateLimiter('path', 20), cache,
   userServiceProxy

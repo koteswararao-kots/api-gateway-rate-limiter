@@ -14,6 +14,11 @@ services:
       PRODUCT_SERVICE_URL: http://product-service:3004
       ORDER_SERVICE_URL: http://order-service:3005
       NOTIFICATION_SERVICE_URL: http://notification-service:3006
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: gateway
+      POSTGRES_PASSWORD: gateway_password
+      POSTGRES_DB: api_gateway
       MONGODB_URL: mongodb://mongodb:27017
     depends_on:
       - redis
@@ -24,6 +29,7 @@ services:
       - order-service
       - notification-service
       - mongodb
+      - postgres
 
   redis:
     image: redis:7-alpine
